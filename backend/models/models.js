@@ -17,6 +17,21 @@ const User = data.define('user', {
     role: {
         type: DataTypes.STRING,
         defaultValue: 'USER'
+    },
+    isActivated: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    activationLink: {
+        type: DataTypes.STRING
+    }
+})
+
+const Token = data.define('token', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     }
 })
 
@@ -129,6 +144,9 @@ Basket.belongsTo(User)
 User.hasMany(Rating)
 Rating.belongsTo(User)
 
+User.hasOne(Token)
+Token.belongsTo(User)
+
 Basket.hasMany(BasketDevice)
 BasketDevice.belongsTo(Basket)
 
@@ -158,6 +176,7 @@ Brand.belongsToMany(Type, {
 
 export const models = {
     User,
+    Token,
     Basket,
     BasketDevice,
     Device,

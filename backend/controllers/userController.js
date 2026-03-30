@@ -1,44 +1,29 @@
 import bcrypt from 'bcrypt'
-import { CustomError } from '../errorHandlers/apiErrors.js'
 import { models } from '../models/models.js'
 import { generateToken } from '../utilities/utilities.js'
+import { registerService } from '../services/userService.js'
+import { CustomError } from '../errorHandlers/apiErrors.js'
 
 export async function registerUser(req, res, next) {
-    const { email, password, role } = req.body
+    try {
+        const { email, password } = req.body
 
-    if (!email || !password) {
-        return next(CustomError.badRequest('Uncorrect email or password!'))
-    }
-
-    const potentialUser = await models.User.findOne({
-        where: {
-            email
+        if (!email || !password) {
+            return next(CustomError.badRequest('Uncorrect email or password!'))
         }
-    })
 
-    if (potentialUser) {
-        return next(CustomError.badRequest('There`s already a user with such email!'))
+        const userData = await registerService(email, password)
+
+        res.cookie('refreshToken', userData.refreshToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
+        })
+
+        return res.status(201).json(userData)
+    } catch (e) {
+        console.log(e)
+        next(CustomError.badRequest(e.message))
     }
-
-    const hashedPassword = await bcrypt.hash(password, 5)
-
-    const newUser = await models.User.create({
-        email,
-        role,
-        password: hashedPassword
-    })
-
-    await models.Basket.create({
-        userId: newUser.id
-    })
-
-    const token = generateToken(newUser.id, newUser.email, newUser.role)
-
-    return res.status(201).json({
-        email,
-        role: newUser.dataValues.role,
-        token
-    })
 }
 
 export async function loginUser(req, res, next) {
@@ -69,11 +54,17 @@ export async function loginUser(req, res, next) {
     })
 }
 
+export async function logoutUser(req, res, next) {}
+
 export async function checkAuth(req, res, next) {
     const { id, email, role } = req.user
 
-    const refreshToken = generateToken(id, email, role)
+    const newToken = generateToken(id, email, role)
 
-    return res.json(refreshToken)
+    return res.json(newToken)
 }
+
+export async function activateAccount(req, res, next) {}
+
+export async function refreshToken(req, res, next) {}
 

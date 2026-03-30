@@ -7,7 +7,7 @@ export function generateToken(id, email, role) {
             email,
             role
         },
-        process.env.SECRET_KEY,
+        process.env.JWT_ACCESS_KEY,
         {
             expiresIn: '3h'
         }
