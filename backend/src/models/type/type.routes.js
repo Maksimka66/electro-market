@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { createType, getAllTypes } from '../controllers/typeController.js'
-import { checkRoleHandler } from '../middleware/checkRoleMiddleware.js'
+import { createType, getAllTypes } from '../../../controllers/typeController.js'
+import { checkRoleHandler } from '../../middleware/checkRoleMiddleware.js'
 
 const typeRouter = new Router()
 

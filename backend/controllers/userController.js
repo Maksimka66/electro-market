@@ -1,35 +1,13 @@
 import bcrypt from 'bcrypt'
-import { models } from '../models/models.js'
 import { generateToken } from '../utilities/utilities.js'
-import { registerService } from '../services/userService.js'
-import { CustomError } from '../errorHandlers/apiErrors.js'
-
-export async function registerUser(req, res, next) {
-    try {
-        const { email, password } = req.body
-
-        if (!email || !password) {
-            return next(CustomError.badRequest('Uncorrect email or password!'))
-        }
-
-        const userData = await registerService(email, password)
-
-        res.cookie('refreshToken', userData.refreshToken, {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        })
-
-        return res.status(201).json(userData)
-    } catch (e) {
-        console.log(e)
-        next(CustomError.badRequest(e.message))
-    }
-}
+import { registerService } from '../src/models/user/user.service.js'
+import { CustomError } from '../src/errorHandlers/apiErrors.js'
+import { User } from '../src/models/user/user.model.js'
 
 export async function loginUser(req, res, next) {
     const { email, password } = req.body
 
-    const user = await models.User.findOne({
+    const user = await User.findOne({
         where: {
             email
         }
@@ -63,8 +41,6 @@ export async function checkAuth(req, res, next) {
 
     return res.json(newToken)
 }
-
-export async function activateAccount(req, res, next) {}
 
 export async function refreshToken(req, res, next) {}
 

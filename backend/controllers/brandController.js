@@ -1,7 +1,7 @@
-import { models } from '../models/models.js'
+import { Brand } from '../src/models/brand/brand.model.js'
 
 export async function getAllBrands(req, res) {
-    const brands = await models.Brand.findAll()
+    const brands = await Brand.findAll()
 
     return res.json(brands)
 }
@@ -9,7 +9,7 @@ export async function getAllBrands(req, res) {
 export async function createBrand(req, res) {
     const { name } = req.body
 
-    const brand = await models.Brand.create({ name })
+    const brand = await Brand.create({ name })
 
     return res.status(201).json(brand)
 }

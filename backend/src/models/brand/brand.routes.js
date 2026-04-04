@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createBrand, getAllBrands } from '../controllers/brandController.js'
+import { createBrand, getAllBrands } from '../../../controllers/brandController.js'
 
 const brandRouter = new Router()
 

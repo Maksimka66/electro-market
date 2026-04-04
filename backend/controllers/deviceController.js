@@ -1,8 +1,9 @@
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
-import { models } from '../models/models.js'
-import { CustomError } from '../errorHandlers/apiErrors.js'
-import { __dirname } from '../config.js'
+import { CustomError } from '../src/errorHandlers/apiErrors.js'
+import { __dirname } from '../src/configs/config.js'
+import { Device } from '../src/models/device/device.model.js'
+import { DeviceInfo } from '../src/models/deviceInfo/deviceInfo.model.js'
 
 export async function getAllDevices(req, res) {
     const { brandId, typeId } = req.body
@@ -14,7 +15,7 @@ export async function getAllDevices(req, res) {
     let offset = limit * page - limit
 
     if (!brandId && !typeId) {
-        const devices = await models.Device.findAndCountAll({
+        const devices = await Device.findAndCountAll({
             limit,
             offset
         })
@@ -23,7 +24,7 @@ export async function getAllDevices(req, res) {
     }
 
     if (!brandId && typeId) {
-        const devices = await models.Device.findAndCountAll({
+        const devices = await Device.findAndCountAll({
             where: {
                 typeId
             },
@@ -35,7 +36,7 @@ export async function getAllDevices(req, res) {
     }
 
     if (brandId && !typeId) {
-        const devices = await models.Device.findAndCountAll({
+        const devices = await Device.findAndCountAll({
             where: {
                 brandId
             },
@@ -47,7 +48,7 @@ export async function getAllDevices(req, res) {
     }
 
     if (brandId && typeId) {
-        const devices = await models.Device.findAndCountAll({
+        const devices = await Device.findAndCountAll({
             where: {
                 brandId,
                 typeId
@@ -63,13 +64,13 @@ export async function getAllDevices(req, res) {
 export async function getOneDevice(req, res) {
     const { id } = req.params
 
-    const device = await models.Device.findOne({
+    const device = await Device.findOne({
         where: {
             id
         },
         include: [
             {
-                model: models.DeviceInfo,
+                model: DeviceInfo,
                 as: 'info'
             }
         ]
@@ -89,13 +90,13 @@ export async function createDevice(req, res, next) {
 
         img.mv(path.resolve(__dirname, '..', 'static', fileName))
 
-        const device = await models.Device.create({ name, price, brandId, typeId, img: fileName })
+        const device = await Device.create({ name, price, brandId, typeId, img: fileName })
 
         if (info) {
             info = JSON.parse(info)
 
             info.forEach(({ title, description }) =>
-                models.DeviceInfo.create({
+                DeviceInfo.create({
                     title,
                     description,
                     deviceId: device.id

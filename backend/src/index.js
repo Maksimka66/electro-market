@@ -4,10 +4,10 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
-import data from './db.js'
-import router from './routes/index.js'
-import { errorHandler } from './middleware/ErrorHandlingMiddleware.js'
-import { __dirname, __filename } from './config.js'
+import data from './core/db.js'
+import router from './core/routes.js'
+import { errorHandler } from './middleware/errorHandlingMiddleware.js'
+import { __dirname, __filename } from './configs/config.js'
 
 const app = express()
 

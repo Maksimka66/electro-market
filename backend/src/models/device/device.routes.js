@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createDevice, getAllDevices, getOneDevice } from '../controllers/deviceController.js'
+import { createDevice, getAllDevices, getOneDevice } from '../../../controllers/deviceController.js'
 
 const deviceRouter = new Router()
 

@@ -1,7 +1,7 @@
-import { models } from '../models/models.js'
+import { Type } from '../src/models/type/type.model.js'
 
 export async function getAllTypes(req, res) {
-    const types = await models.Type.findAll()
+    const types = await Type.findAll()
 
     return res.json(types)
 }
@@ -9,7 +9,7 @@ export async function getAllTypes(req, res) {
 export async function createType(req, res) {
     const { name } = req.body
 
-    const type = await models.Type.create({ name })
+    const type = await Type.create({ name })
 
     return res.status(201).json(type)
 }

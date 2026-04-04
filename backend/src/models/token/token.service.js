@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { models } from '../models/models.js'
+import { Token } from './token.model.js'
 
 export async function generateTokensService(userData) {
     const accessToken = jwt.sign(userData, process.env.JWT_ACCESS_KEY, {
@@ -16,7 +16,7 @@ export async function generateTokensService(userData) {
 }
 
 export async function saveTokenService(userId, refreshToken) {
-    const tokenData = await models.Token.findOne({
+    const tokenData = await Token.findOne({
         where: {
             userId
         }
@@ -30,7 +30,7 @@ export async function saveTokenService(userId, refreshToken) {
         return tokenData
     }
 
-    const token = await models.Token.create({
+    const token = await Token.create({
         userId,
         refreshToken
     })
