@@ -3,7 +3,6 @@ import path from 'path'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import fileUpload from 'express-fileupload'
 import data from './core/db.js'
 import router from './core/routes.js'
 import { errorHandler } from './middleware/errorHandlingMiddleware.js'
@@ -15,7 +14,6 @@ app.use(cors())
 app.use(express.json())
 app.use(cookieParser())
 app.use(express.static(path.resolve(__dirname, 'static')))
-app.use(fileUpload({}))
 app.use('/api', router)
 app.use(errorHandler)
 

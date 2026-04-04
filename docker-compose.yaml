@@ -1,0 +1,24 @@
+services:
+  mailcatcher:
+    container_name: q-mailcatcher
+    restart: on-failure
+    image: dockage/mailcatcher:0.9.0
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+  db:
+    image: postgres:16-alpine
+    container_name: electro_market_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: electro_market
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

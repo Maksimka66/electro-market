@@ -2,8 +2,8 @@ import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from '../src/errorHandlers/apiErrors.js'
 import { __dirname } from '../src/configs/config.js'
-import { Device } from '../src/models/device/device.model.js'
-import { DeviceInfo } from '../src/models/deviceInfo/deviceInfo.model.js'
+import { Device } from '../src/modules/device/device.model.js'
+import { DeviceInfo } from '../src/modules/deviceInfo/deviceInfo.model.js'
 
 export async function getAllDevices(req, res) {
     const { brandId, typeId } = req.body
