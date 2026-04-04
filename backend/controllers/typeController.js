@@ -1,4 +1,4 @@
-import { Type } from '../src/models/type/type.model.js'
+import { Type } from '../src/modules/type/type.model.js'
 
 export async function getAllTypes(req, res) {
     const types = await Type.findAll()

@@ -1,4 +1,4 @@
-import { Brand } from '../src/models/brand/brand.model.js'
+import { Brand } from '../src/modules/brand/brand.model.js'
 
 export async function getAllBrands(req, res) {
     const brands = await Brand.findAll()

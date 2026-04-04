@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { body } from 'express-validator'
+import { body, query, matchedData } from 'express-validator'
 import bcrypt from 'bcrypt'
 import { authHandler } from '../../middleware/authMiddleware.js'
 import {
@@ -10,38 +10,45 @@ import {
 import { User } from './user.model.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 import { generateTokensService, saveTokenService } from '../token/token.service.js'
+import { validate } from '../../utils/validation.utils.js'
 
 const userRouter = new Router()
 
-userRouter.post('/register', async (req, res, next) => {
-    try {
-        const { email, password } = req.body
+userRouter.post(
+    '/register',
+    [
+        body('email').isEmail(),
+        body('password').isLength({ min: 8 }),
+        query('test').isLength({ min: 8 })
+    ],
+    validate,
+    async (req, res, next) => {
+        try {
+            console.log(matchedData(req))
+            const { email, password, ...rest } = matchedData(req)
 
-        if (!email || !password) {
-            return next(CustomError.badRequest('Uncorrect email or password!'))
+            const createdUser = await createUserService(email, password)
+
+            await sendActivationEmailService(
+                createdUser.email,
+                `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
+            )
+
+            const tokens = await generateTokensService({
+                id: createdUser.id,
+                email: createdUser.email,
+                isActivated: createdUser.isActivated
+            })
+
+            await saveTokenService(createdUser.id, tokens.refreshToken)
+
+            return res.status(201).json(createdUser)
+        } catch (e) {
+            console.log(e)
+            next(CustomError.badRequest(e.message))
         }
-
-        const createdUser = await createUserService(email, password)
-
-        // await sendActivationEmailService(
-        //     createdUser.email,
-        //     `${process.env.API_URL}/api/activate/${createdUser.activationLink}`
-        // )
-
-        const tokens = await generateTokensService({
-            id: createdUser.id,
-            email: createdUser.email,
-            isActivated: createdUser.isActivated
-        })
-
-        await saveTokenService(createdUser.id, tokens.refreshToken)
-
-        return res.status(201).json(createdUser)
-    } catch (e) {
-        console.log(e)
-        next(CustomError.badRequest(e.message))
     }
-})
+)
 
 userRouter.post('/login', async (req, res, next) => {
     try {
