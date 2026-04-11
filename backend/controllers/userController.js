@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt'
 import { generateToken } from '../utilities/utilities.js'
-import { registerService } from '../src/models/user/user.service.js'
+import { registerService } from '../src/modules/user/user.service.js'
 import { CustomError } from '../src/errorHandlers/apiErrors.js'
-import { User } from '../src/models/user/user.model.js'
+import { User } from '../src/modules/user/user.model.js'
 
 export async function loginUser(req, res, next) {
     const { email, password } = req.body
@@ -43,4 +43,3 @@ export async function checkAuth(req, res, next) {
 }
 
 export async function refreshToken(req, res, next) {}
-
