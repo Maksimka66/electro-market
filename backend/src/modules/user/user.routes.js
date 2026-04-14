@@ -2,7 +2,13 @@ import { Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import { authHandler } from '../../middlewares/authMiddleware.js'
 import { activateAccount, createUser, loginUser, sendActivationEmail } from './user.service.js'
-import { deleteToken, generateTokens, saveToken } from '../token/token.service.js'
+import {
+    createTokens,
+    deleteToken,
+    getToken,
+    setRefreshToken,
+    updateToken
+} from '../token/token.service.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
 const userRouter = new Router()
@@ -28,19 +34,14 @@ userRouter.post(
 
             const createdUser = await createUser(email, password)
 
-            // await sendActivationEmail(
-            //     createdUser.email,
-            //     `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
-            // )
+            await sendActivationEmail(
+                createdUser.email,
+                `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
+            )
 
-            const tokens = await generateTokens({
-                id: createdUser.id,
-                email: createdUser.email
-            })
+            const tokens = await createTokens(createdUser.id, createdUser.email)
 
-            const { refreshToken } = await saveToken(createdUser.id, tokens.refreshToken)
-
-            res.cookie('refreshToken', refreshToken, {
+            res.cookie('refreshToken', tokens.refreshToken, {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
                 httpOnly: true
             })
@@ -71,12 +72,23 @@ userRouter.post(
 
             const user = await loginUser(email, password)
 
-            const tokens = await generateTokens({
-                id: user.id,
-                email: user.email
-            })
+            const tokenData = await getToken('userId', user.id)
 
-            await saveToken(user.id, tokens.refreshToken)
+            if (tokenData) {
+                const tokens = await updateToken(user.id, user.email)
+
+                res.cookie('refreshToken', tokens.refreshToken, {
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                    httpOnly: true
+                })
+
+                return res.json({
+                    ...tokens,
+                    user
+                })
+            }
+
+            const tokens = await createTokens(user.id, user.email)
 
             return res.json({
                 ...tokens,
@@ -119,7 +131,29 @@ userRouter.get('/activate/:link', async (req, res, next) => {
     }
 })
 
-userRouter.get('/refresh', async (req, res, next) => {})
+userRouter.get('/refresh', async (req, res, next) => {
+    try {
+        const { refreshToken } = req.cookies
+
+        const tokenData = await getToken('refreshToken', refreshToken)
+
+        const updatedRefreshToken = await setRefreshToken(refreshToken)
+
+        if (tokenData && updatedRefreshToken) {
+            const tokens = await updateToken(user.id, user.email)
+
+            res.cookie('refreshToken', tokens.refreshToken, {
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                httpOnly: true
+            })
+
+            return res.json(updatedRefreshToken)
+        }
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
 
 export default userRouter
 

@@ -25,10 +25,6 @@ export async function createUser(email, password) {
         activationLink
     })
 
-    // await Basket.create({
-    //     userId: newUser.id
-    // })
-
     return newUser
 }
 

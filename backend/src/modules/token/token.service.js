@@ -1,47 +1,58 @@
-import jwt from 'jsonwebtoken'
 import { Token } from './token.model.js'
+import { generateTokens, validateToken } from './token.utils.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
-export async function generateTokens(userData) {
-    const accessToken = jwt.sign(userData, process.env.JWT_ACCESS_KEY, {
-        expiresIn: '3h'
-    })
-    const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH_KEY, {
-        expiresIn: '7d'
-    })
-
-    return {
-        accessToken,
-        refreshToken
-    }
-}
-
-export async function saveToken(userId, refreshToken) {
+export async function getToken(searchField, searchData) {
     const tokenData = await Token.findOne({
         where: {
-            userId
+            [searchField]: searchData
         }
     })
 
-    if (tokenData) {
-        tokenData.refreshToken = refreshToken
-
-        await tokenData.save()
-
-        return tokenData
+    if (!tokenData) {
+        throw CustomError.unauthorized()
     }
 
-    const token = await Token.create({
-        userId,
-        refreshToken
+    return tokenData
+}
+
+export async function createTokens(userId, email) {
+    const tokens = generateTokens({
+        id: userId,
+        email
     })
 
-    return token
+    await Token.create({
+        userId,
+        refreshToken: tokens.refreshToken
+    })
+
+    return tokens
+}
+
+export async function updateToken(userId, email) {
+    const tokens = generateTokens({
+        id: userId,
+        email
+    })
+
+    await Token.update(
+        {
+            refreshToken: tokens.refreshToken
+        },
+        {
+            where: {
+                userId
+            }
+        }
+    )
+
+    return tokens
 }
 
 export async function deleteToken(refreshToken) {
     if (!refreshToken) {
-        throw CustomError.badRequest('No such user, impossible to fulfill this command!')
+        throw CustomError.unauthorized()
     }
 
     const tokenData = await Token.destroy({
@@ -51,5 +62,15 @@ export async function deleteToken(refreshToken) {
     })
 
     return tokenData
+}
+
+export async function setRefreshToken(refreshToken) {
+    if (!refreshToken) {
+        throw CustomError.unauthorized()
+    }
+
+    const validatedToken = validateToken(refreshToken, process.env.JWT_REFRESH_KEY)
+
+    return validatedToken
 }
 
