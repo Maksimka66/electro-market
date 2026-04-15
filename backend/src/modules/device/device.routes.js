@@ -1,11 +1,10 @@
 import { Router } from 'express'
-import { createDevice, getAllDevices, getOneDevice } from '../../../controllers/deviceController.js'
 
 const deviceRouter = new Router()
 
-deviceRouter.get('/', getAllDevices)
-deviceRouter.get('/:id', getOneDevice)
-deviceRouter.post('/', createDevice)
+deviceRouter.get('/', () => {})
+deviceRouter.get('/:id', () => {})
+deviceRouter.post('/', () => {})
 
 export default deviceRouter
 

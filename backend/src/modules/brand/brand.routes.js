@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { createBrand, getAllBrands } from '../../../controllers/brandController.js'
 
 const brandRouter = new Router()
 
-brandRouter.get('/', getAllBrands)
-brandRouter.post('/', createBrand)
+brandRouter.get('/', () => {})
+brandRouter.post('/', () => {})
 
 export default brandRouter
 

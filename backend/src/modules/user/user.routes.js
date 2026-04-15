@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { body, validationResult } from 'express-validator'
+import { body, cookie, matchedData, validationResult } from 'express-validator'
 import { authHandler } from '../../middlewares/authMiddleware.js'
 import { activateAccount, createUser, loginUser, sendActivationEmail } from './user.service.js'
 import {
@@ -30,7 +30,7 @@ userRouter.post(
                 return next(CustomError.badRequest('Validation error!', errors.array()))
             }
 
-            const { email, password } = req.body
+            const { email, password } = matchedData(req)
 
             const createdUser = await createUser(email, password)
 
@@ -68,7 +68,7 @@ userRouter.post(
     ],
     async (req, res, next) => {
         try {
-            const { email, password } = req.body
+            const { email, password } = matchedData(req)
 
             const user = await loginUser(email, password)
 
@@ -131,9 +131,15 @@ userRouter.get('/activate/:link', async (req, res, next) => {
     }
 })
 
-userRouter.get('/refresh', async (req, res, next) => {
+userRouter.get('/refresh', [cookie('refreshToken').isJWT()], async (req, res, next) => {
     try {
-        const { refreshToken } = req.cookies
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { refreshToken } = matchedData(req)
 
         const tokenData = await getToken('refreshToken', refreshToken)
 
@@ -147,7 +153,7 @@ userRouter.get('/refresh', async (req, res, next) => {
                 httpOnly: true
             })
 
-            return res.json(updatedRefreshToken)
+            return res.json(tokens)
         }
     } catch (e) {
         console.log(e)

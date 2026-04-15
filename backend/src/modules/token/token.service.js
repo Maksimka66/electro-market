@@ -1,5 +1,5 @@
-import { Token } from './token.model.js'
 import { generateTokens, validateToken } from './token.utils.js'
+import { Token } from './token.model.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
 export async function getToken(searchField, searchData) {
