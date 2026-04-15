@@ -12,4 +12,3 @@ export const Token = db.define('token', {
         allowNull: false
     }
 })
-

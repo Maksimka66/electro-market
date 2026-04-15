@@ -8,4 +8,3 @@ export const Basket = db.define('basket', {
         autoIncrement: true
     }
 })
-

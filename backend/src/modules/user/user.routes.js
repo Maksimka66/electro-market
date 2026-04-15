@@ -34,10 +34,10 @@ userRouter.post(
 
             const createdUser = await createUser(email, password)
 
-            await sendActivationEmail(
-                createdUser.email,
-                `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
-            )
+            // await sendActivationEmail(
+            //     createdUser.email,
+            //     `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
+            // )
 
             const tokens = await createTokens(createdUser.id, createdUser.email)
 

@@ -6,9 +6,9 @@ import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import db from './core/db.js'
 import router from './core/routes.js'
-import modelsConnection from './modules/modelsConnection.js'
-import { errorHandler } from './middlewares/errorHandlingMiddleware.js'
+import './modules/modelsConnection.js'
 import { __dirname, __filename } from './configs/config.js'
+import { errorHandler } from './middlewares/errorHandlingMiddleware.js'
 
 const app = express()
 

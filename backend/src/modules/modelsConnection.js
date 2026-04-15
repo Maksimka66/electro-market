@@ -44,17 +44,3 @@ Type.belongsToMany(Brand, {
 Brand.belongsToMany(Type, {
     through: TypeBrand
 })
-
-export default {
-    User,
-    Basket,
-    BasketDevice,
-    Token,
-    Brand,
-    Rating,
-    Type,
-    TypeBrand,
-    Device,
-    DeviceInfo
-}
-
