@@ -36,4 +36,3 @@ const connectDb = async () => {
 }
 
 connectDb()
-

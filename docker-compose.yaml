@@ -1,0 +1,25 @@
+services:
+    mailcatcher:
+      container_name: email_test
+      restart: on-failure
+      image: dockage/mailcatcher:0.9.0
+      ports:
+      - "1080:1080"
+      - "1025:1025"
+
+    db_postgres:
+      container_name: db_postgres
+      image: postgres:16.0
+      env_file:
+        - path: ./backend/.env
+      environment:
+        POSTGRES_USER: ${DB_USERNAME}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_DB: ${DB_NAME}
+      ports:
+        - ${DB_PORT}
+      volumes:
+      - pg-data:/var/lib/postgresql/data
+
+volumes:
+  pg-data:
