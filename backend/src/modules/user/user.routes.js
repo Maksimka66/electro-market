@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { body, cookie, matchedData, validationResult } from 'express-validator'
+import { body, cookie, header, matchedData, validationResult } from 'express-validator'
 import { authHandler } from '../../middlewares/authMiddleware.js'
 import { activateAccount, createUser, loginUser, sendActivationEmail } from './user.service.js'
 import {
@@ -101,9 +101,15 @@ userRouter.post(
     }
 )
 
-userRouter.post('/logout', async (req, res, next) => {
+userRouter.post('/logout', [cookie('refreshToken').isJWT()], async (req, res, next) => {
     try {
-        const { refreshToken } = req.cookies
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { refreshToken } = matchedData(req)
 
         const deletedToken = await deleteToken(refreshToken)
 
@@ -116,7 +122,9 @@ userRouter.post('/logout', async (req, res, next) => {
     }
 })
 
-userRouter.get('/auth', authHandler, async (req, res, next) => {})
+userRouter.get('/auth', [header('Authorization').isJWT()], authHandler, async (req, res, next) => {
+    console.log(5)
+})
 
 userRouter.get('/activate/:link', async (req, res, next) => {
     try {
@@ -143,10 +151,10 @@ userRouter.get('/refresh', [cookie('refreshToken').isJWT()], async (req, res, ne
 
         const tokenData = await getToken('refreshToken', refreshToken)
 
-        const updatedRefreshToken = await setRefreshToken(refreshToken)
+        const userData = await setRefreshToken(refreshToken)
 
-        if (tokenData && updatedRefreshToken) {
-            const tokens = await updateToken(user.id, user.email)
+        if (tokenData && userData) {
+            const tokens = await updateToken(userData.id, userData.email)
 
             res.cookie('refreshToken', tokens.refreshToken, {
                 maxAge: 7 * 24 * 60 * 60 * 1000,

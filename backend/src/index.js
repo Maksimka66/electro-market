@@ -7,6 +7,7 @@ import fileUpload from 'express-fileupload'
 import db from './core/db.js'
 import router from './core/routes.js'
 import './modules/modelsConnection.js'
+import limiter from './middlewares/rateLimiterMiddleware.js'
 import { __dirname, __filename } from './configs/config.js'
 import { errorHandler } from './middlewares/errorHandlingMiddleware.js'
 
@@ -17,6 +18,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(fileUpload({}))
+app.use(limiter)
 app.use('/api', router)
 app.use(errorHandler)
 
@@ -36,3 +38,4 @@ const connectDb = async () => {
 }
 
 connectDb()
+

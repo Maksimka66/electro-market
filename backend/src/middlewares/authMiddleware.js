@@ -1,28 +1,27 @@
-import jwt from 'jsonwebtoken'
+import { CustomError } from '../errorHandlers/apiErrors.js'
+import { validateToken } from '../modules/token/token.utils.js'
 
 export function authHandler(req, res, next) {
-    if (req.method === 'OPTIONS') {
-        next()
-    }
-
     try {
-        const token = req.headers.authorization.split(' ')[1]
+        const authHeader = req.headers.authorization
 
-        if (!token) {
-            return res.status(401).json({
-                message: 'Unauthorized!'
-            })
+        const accessToken = authHeader.split(' ')[1]
+
+        if (!authHeader || !accessToken) {
+            return next(CustomError.unauthorized())
         }
 
-        const decodedData = jwt.verify(token, process.env.SECRET_KEY)
+        const decodedData = validateToken(accessToken, process.env.JWT_ACCESS_KEY)
+
+        if (!decodedData) {
+            return next(CustomError.unauthorized())
+        }
 
         req.user = decodedData
 
         next()
     } catch (e) {
-        res.status(401).json({
-            message: 'Unauthorized!'
-        })
+        return next(CustomError.unauthorized())
     }
 }
 

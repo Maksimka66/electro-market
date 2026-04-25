@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { CustomError } from '../../errorHandlers/apiErrors.js'
 
 export function generateTokens(userData) {
     const accessToken = jwt.sign(userData, process.env.JWT_ACCESS_KEY, {
