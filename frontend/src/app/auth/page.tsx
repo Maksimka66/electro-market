@@ -1,2 +1,4 @@
-export default function AuthPage() {}
+export default function AuthPage() {
+    return
+}
 

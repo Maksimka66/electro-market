@@ -7,7 +7,7 @@ export interface IRegisterForm {
 }
 
 export interface ILoginForm {
-    username: string
     email: string
+    password: string
 }
 
