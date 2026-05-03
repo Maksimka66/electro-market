@@ -2,41 +2,46 @@ import { createSlice } from '@reduxjs/toolkit'
 import { userApi } from './userApi'
 
 const initialState = {
-    user: null,
+    email: '',
     accessToken: '',
     refreshToken: ''
 }
 
 export const userSlice = createSlice({
-    name: 'user',
+    name: 'userData',
     initialState,
     selectors: {
-        selectUser: (state) => state.user,
+        selectEmail: (state) => state.email,
         selectAccessToken: (state) => state.accessToken,
         selectRefreshToken: (state) => state.refreshToken
     },
     reducers: {},
     extraReducers(builder) {
         builder.addMatcher(userApi.endpoints.register.matchFulfilled, (state, { payload }) => {
-            state.user = payload.createdUser
+            state.email = payload.createdUser.email
             state.accessToken = payload.accessToken
             state.refreshToken = payload.refreshToken
         })
 
         builder.addMatcher(userApi.endpoints.login.matchFulfilled, (state, { payload }) => {
-            state.user = payload.user
+            state.email = payload.user.email
             state.accessToken = payload.accessToken
             state.refreshToken = payload.refreshToken
         })
 
         builder.addMatcher(userApi.endpoints.logout.matchFulfilled, (state) => {
-            state.user = null
+            state.email = ''
             state.accessToken = ''
             state.refreshToken = ''
         })
+
+        // builder.addMatcher(userApi.endpoints.reset.matchFulfilled, (state, { payload }) => {
+        //     state.user.password = payload.password
+        // })
     }
 })
 
-export const { selectUser, selectAccessToken, selectRefreshToken } = userSlice.selectors
+export const { selectEmail, selectAccessToken, selectRefreshToken } = userSlice.selectors
 
 export default userSlice.reducer
+

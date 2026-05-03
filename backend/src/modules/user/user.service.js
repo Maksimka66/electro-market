@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { User } from './user.model.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
-export async function createUser(email, password) {
+export async function createUser(username, email, password) {
     const potentialUser = await User.findOne({
         where: {
             email
@@ -20,6 +20,7 @@ export async function createUser(email, password) {
     const activationLink = uuidv4()
 
     const newUser = await User.create({
+        username,
         email,
         password: hashedPassword,
         activationLink
@@ -48,7 +49,7 @@ export async function loginUser(email, password) {
     return user
 }
 
-export async function sendActivationEmail(to, link) {
+export async function sendActivationEmail(to, link, subject, text) {
     const transporter = nodemailer.createTransport({
         port: process.env.SMTP_PORT,
         host: process.env.SMTP_HOST,
@@ -58,10 +59,9 @@ export async function sendActivationEmail(to, link) {
     await transporter.sendMail({
         from: process.env.SMTP_USER,
         to,
-        subject: `Please activate your account on ${process.env.API_URL}`,
-        text: 'Check this out...',
+        subject,
         html: `<div>
-                    <p>Please follow this link to activate your account:</p>
+                    <p>${text}</p>
                     <a href=${link}>${link}</a>
                 </div>`
     })
@@ -79,6 +79,41 @@ export async function activateAccount(activationLink) {
     }
 
     user.isActivated = true
+
+    await user.save()
+}
+
+export async function forgotPassword(email) {
+    const user = await User.findOne({
+        where: {
+            email
+        }
+    })
+
+    if (!user) {
+        throw CustomError.badRequest('No user with such email!')
+    }
+
+    const changePasswordCode = uuidv4()
+
+    return {
+        ...user,
+        changePasswordCode
+    }
+}
+
+export async function resetPassword(email, newPassword) {
+    const user = await User.findOne({
+        where: {
+            email
+        }
+    })
+
+    if (!user) {
+        throw CustomError.badRequest('No user with such email!')
+    }
+
+    user.password = newPassword
 
     await user.save()
 }

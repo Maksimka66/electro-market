@@ -11,3 +11,12 @@ export interface ILoginForm {
     password: string
 }
 
+export interface IForgotPasswordForm {
+    email: string
+}
+
+export interface IResetPasswordForm {
+    newPassword: string
+    confirmNewPassword: string
+}
+

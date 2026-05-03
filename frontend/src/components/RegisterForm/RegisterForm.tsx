@@ -7,9 +7,14 @@ import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContai
 import Checkbox from '@/src/shared/Checkbox/Checkbox'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { registerSchema } from '@/src/schemas/registerFormSchema'
+import { useRegisterMutation } from '@/src/store/user/userApi'
+import Loader from '@/src/shared/Loader/Loader'
+import SubmitButton from '@/src/shared/SubmitButton/SubmitButton'
 
 export default function RegisterForm() {
-    const defaultValues = {
+    const [registerUser] = useRegisterMutation()
+
+    const defaultValues: IRegisterForm = {
         username: '',
         email: '',
         password: '',
@@ -22,66 +27,84 @@ export default function RegisterForm() {
         resolver: zodResolver(registerSchema)
     })
 
-    const { handleSubmit } = methods
+    const { handleSubmit, reset } = methods
 
-    const submitForm: SubmitHandler<IRegisterForm> = (data) => {
-        console.log(data)
+    const submitForm: SubmitHandler<IRegisterForm> = async (data) => {
+        try {
+            const res = await registerUser(data)
+
+            if (res && !res.error) {
+                reset()
+            }
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     return (
-        <FormProvider {...methods}>
-            <form className='w-1/3 mx-auto my-0' onSubmit={handleSubmit(submitForm)}>
-                <h2 className='font-(family-name:--font-main-poppins) text-[40px] mb-6'>Sign up</h2>
-                <div className='flex gap-1 mb-8'>
-                    <span className='font-(family-name:--font-second-inter) font-normal text-4 text-[#6C7275] leading-6.5'>
-                        Already have an account?
-                    </span>
-                    <Link
-                        className='font-(family-name:--font-second-inter) font-normal text-4 text-green-500 leading-6.5'
-                        href='/auth/login'
-                    >
-                        Sign in
-                    </Link>
-                </div>
-                <FormFieldContainer
-                    label={'Username'}
-                    placeholder={'Enter your username'}
-                    fieldName={'username'}
-                />
-                <FormFieldContainer
-                    label={'Email'}
-                    placeholder={'Enter your email'}
-                    fieldName={'email'}
-                />
-                <FormFieldContainer
-                    label={'Password'}
-                    placeholder={'Enter your password'}
-                    fieldName={'password'}
-                />
-                <FormFieldContainer
-                    label={'Confirm password'}
-                    placeholder={'Confirm your password'}
-                    fieldName={'confirmPassword'}
-                />
-                <Checkbox
-                    label={
-                        <span>
-                            I agree with{' '}
-                            <Link className='text-[#141718] font-semibold' href=''>
-                                Privacy Policy
-                            </Link>{' '}
-                            and{' '}
-                            <Link className='text-[#141718] font-semibold' href=''>
-                                Terms of Use
-                            </Link>
+        <div className='w-full'>
+            <h2 className='font-(family-name:--font-main-poppins) text-[40px] mx-auto mb-8 w-1/3'>
+                Sign up
+            </h2>
+            <FormProvider {...methods}>
+                <form className='w-1/3 mx-auto my-0' onSubmit={handleSubmit(submitForm)}>
+                    <div className='flex gap-1 mb-8'>
+                        <span className='font-(family-name:--font-second-inter) font-normal text-4 text-[#6C7275] leading-6.5'>
+                            Already have an account?
                         </span>
-                    }
-                />
-                <button className='w-full py-2.5 rounded-lg bg-[#141718] font-(family-name:--font-second-inter) font-medium leading-7 tracking-[-0.4px] text-4 text-[#ffffff] cursor-pointer'>
-                    Sign up
-                </button>
-            </form>
-        </FormProvider>
+                        <Link
+                            className='font-(family-name:--font-second-inter) font-normal text-4 text-green-500 leading-6.5'
+                            href='/auth/login'
+                        >
+                            Sign in
+                        </Link>
+                    </div>
+                    <FormFieldContainer
+                        label={'Username'}
+                        placeholder={'Enter your username'}
+                        type='text'
+                        fieldName={'username'}
+                    />
+                    <FormFieldContainer
+                        label={'Email'}
+                        placeholder={'Enter your email'}
+                        type='email'
+                        fieldName={'email'}
+                    />
+                    <FormFieldContainer
+                        label={'Password'}
+                        placeholder={'Enter your password'}
+                        type='password'
+                        fieldName={'password'}
+                    />
+                    <FormFieldContainer
+                        label={'Confirm password'}
+                        placeholder={'Confirm your password'}
+                        type='password'
+                        fieldName={'confirmPassword'}
+                    />
+                    <div className='mb-8'>
+                        <Checkbox
+                            label={
+                                <span>
+                                    I agree with{' '}
+                                    <Link className='text-[#141718] font-semibold' href=''>
+                                        Privacy Policy
+                                    </Link>{' '}
+                                    and{' '}
+                                    <Link className='text-[#141718] font-semibold' href=''>
+                                        Terms of Use
+                                    </Link>
+                                </span>
+                            }
+                        />
+                    </div>
+                    <SubmitButton textContent='Sign up'>
+                        <Loader width='28' height='28' />
+                    </SubmitButton>
+                </form>
+            </FormProvider>
+        </div>
     )
 }
 

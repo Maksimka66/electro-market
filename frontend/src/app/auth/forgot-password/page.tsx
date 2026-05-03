@@ -1,4 +1,6 @@
-export default function ForgotPassword() {
-    return <div>forgot</div>
+import ForgotPasswordForm from '@/src/components/ForgotPasswordForm/ForgotPasswordForm'
+
+export default function ForgotPasswordPage() {
+    return <ForgotPasswordForm />
 }
 

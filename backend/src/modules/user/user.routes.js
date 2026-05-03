@@ -1,7 +1,14 @@
 import { Router } from 'express'
-import { body, cookie, header, matchedData, validationResult } from 'express-validator'
+import { header, matchedData, validationResult } from 'express-validator'
 import { authHandler } from '../../middlewares/authMiddleware.js'
-import { activateAccount, createUser, loginUser, sendActivationEmail } from './user.service.js'
+import {
+    activateAccount,
+    createUser,
+    forgotPassword,
+    loginUser,
+    resetPassword,
+    sendActivationEmail
+} from './user.service.js'
 import {
     createTokens,
     deleteToken,
@@ -9,99 +16,88 @@ import {
     setRefreshToken,
     updateToken
 } from '../token/token.service.js'
+import { registrationSchema } from '../../schemas/registrationSchema.js'
+import { loginSchema } from '../../schemas/loginSchema.js'
+import { forgotPasswordSchema } from '../../schemas/forgotPasswordSchema.js'
+import { resetPasswordSchema } from '../../schemas/resetPasswordSchema.js'
+import { logoutSchema } from '../../schemas/logoutSchema.js'
+import { refreshSchema } from '../../schemas/refreshSchema.js'
+import { activateAccountSchema } from '../../schemas/activateAccountSchema.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
 const userRouter = new Router()
 
-userRouter.post(
-    '/register',
-    [
-        body('email').isEmail(),
-        body('password').isLength({
-            min: 6,
-            max: 30
+userRouter.post('/register', registrationSchema, async (req, res, next) => {
+    try {
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { username, email, password } = matchedData(req)
+
+        const createdUser = await createUser(username, email, password)
+
+        await sendActivationEmail(
+            createdUser.email,
+            `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`,
+            `Activate your account on ${process.env.API_URL}`,
+            'Please follow this link to activate your account:'
+        )
+
+        const tokens = await createTokens(createdUser.id, createdUser.email)
+
+        res.cookie('refreshToken', tokens.refreshToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
         })
-    ],
-    async (req, res, next) => {
-        try {
-            const errors = validationResult(req)
 
-            if (!errors.isEmpty()) {
-                return next(CustomError.badRequest('Validation error!', errors.array()))
-            }
+        return res.status(201).json({
+            ...tokens,
+            createdUser
+        })
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
 
-            const { email, password } = matchedData(req)
+userRouter.post('/login', loginSchema, async (req, res, next) => {
+    try {
+        const { email, password } = matchedData(req)
 
-            const createdUser = await createUser(email, password)
+        const user = await loginUser(email, password)
 
-            await sendActivationEmail(
-                createdUser.email,
-                `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`
-            )
+        const tokenData = await getToken('userId', user.id)
 
-            const tokens = await createTokens(createdUser.id, createdUser.email)
+        if (tokenData) {
+            const tokens = await updateToken(user.id, user.email)
 
             res.cookie('refreshToken', tokens.refreshToken, {
                 maxAge: 7 * 24 * 60 * 60 * 1000,
                 httpOnly: true
             })
 
-            return res.status(201).json({
-                ...tokens,
-                createdUser
-            })
-        } catch (e) {
-            console.log(e)
-            next(e)
-        }
-    }
-)
-
-userRouter.post(
-    '/login',
-    [
-        body('email').isEmail(),
-        body('password').isLength({
-            min: 6,
-            max: 30
-        })
-    ],
-    async (req, res, next) => {
-        try {
-            const { email, password } = matchedData(req)
-
-            const user = await loginUser(email, password)
-
-            const tokenData = await getToken('userId', user.id)
-
-            if (tokenData) {
-                const tokens = await updateToken(user.id, user.email)
-
-                res.cookie('refreshToken', tokens.refreshToken, {
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
-                    httpOnly: true
-                })
-
-                return res.json({
-                    ...tokens,
-                    user
-                })
-            }
-
-            const tokens = await createTokens(user.id, user.email)
-
             return res.json({
                 ...tokens,
                 user
             })
-        } catch (e) {
-            console.log(e)
-            next(e)
         }
-    }
-)
 
-userRouter.post('/logout', [cookie('refreshToken').isJWT()], async (req, res, next) => {
+        const tokens = await createTokens(user.id, user.email)
+
+        return res.json({
+            ...tokens,
+            user
+        })
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
+
+userRouter.post('/logout', logoutSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -122,13 +118,63 @@ userRouter.post('/logout', [cookie('refreshToken').isJWT()], async (req, res, ne
     }
 })
 
+userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next) => {
+    try {
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { email } = matchedData(req)
+
+        const user = await forgotPassword(email)
+
+        await sendActivationEmail(
+            user.email,
+            `${process.env.API_URL}/api/user/reset_password/${user.changePasswordCode}`,
+            `Reset your password on ${process.env.API_URL}. If you did not do that, ignore this message.`,
+            'Please follow this link to reset your password:'
+        )
+
+        return res.json({
+            message: 'Check your email to continue'
+        })
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
+
+userRouter.patch('reset_password', resetPasswordSchema, async (req, res, next) => {
+    const errors = validationResult(req)
+
+    if (!errors.isEmpty()) {
+        return next(CustomError.badRequest('Validation error!', errors.array()))
+    }
+
+    const { newPassword } = matchedData(req)
+
+    await resetPassword(email, newPassword) // проверить откуда брать email
+
+    return res.json({
+        message: 'Your password has been changed'
+    })
+})
+
 userRouter.get('/auth', [header('Authorization').isJWT()], authHandler, async (req, res, next) => {
     console.log(5)
 })
 
-userRouter.get('/activate/:link', async (req, res, next) => {
+userRouter.get('/activate/:link', activateAccountSchema, async (req, res, next) => {
     try {
-        const activationLink = req.params.link
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const activationLink = matchedData(req)
 
         await activateAccount(activationLink)
 
@@ -139,7 +185,7 @@ userRouter.get('/activate/:link', async (req, res, next) => {
     }
 })
 
-userRouter.get('/refresh', [cookie('refreshToken').isJWT()], async (req, res, next) => {
+userRouter.get('/refresh', refreshSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -170,4 +216,3 @@ userRouter.get('/refresh', [cookie('refreshToken').isJWT()], async (req, res, ne
 })
 
 export default userRouter
-

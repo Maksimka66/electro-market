@@ -12,7 +12,7 @@ export default function Checkbox({ label }: ICheckboxProps) {
     const id = useId()
 
     return (
-        <div className='relative flex gap-2 mb-8 items-center hover:border-[#6C7275]'>
+        <div className='relative flex gap-2 items-center hover:border-[#6C7275]'>
             <input
                 className="
                 peer 

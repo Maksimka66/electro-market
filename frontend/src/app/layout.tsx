@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Poppins, Inter } from 'next/font/google'
+import ReduxProvider from '../store/ReduxProvider'
 import './globals.css'
 
 const poppins = Poppins({
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' className={`${poppins.variable} ${inter.variable} h-full antialiased`}>
-            <body className='min-h-full flex flex-col'>{children}</body>
+            <body className='h-screen flex items-center justify-center'>
+                <ReduxProvider>{children}</ReduxProvider>
+            </body>
         </html>
     )
 }
