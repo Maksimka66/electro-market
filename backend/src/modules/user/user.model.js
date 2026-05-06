@@ -29,6 +29,10 @@ export const User = db.define('user', {
     activationLink: {
         type: DataTypes.STRING,
         defaultValue: ''
+    },
+    changePasswordCode: {
+        type: DataTypes.STRING,
+        defaultValue: ''
     }
 })
 

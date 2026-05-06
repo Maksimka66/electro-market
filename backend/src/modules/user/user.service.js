@@ -79,6 +79,7 @@ export async function activateAccount(activationLink) {
     }
 
     user.isActivated = true
+    user.activationLink = ''
 
     await user.save()
 }
@@ -96,16 +97,17 @@ export async function forgotPassword(email) {
 
     const changePasswordCode = uuidv4()
 
-    return {
-        ...user,
-        changePasswordCode
-    }
+    user.changePasswordCode = changePasswordCode
+
+    await user.save()
+
+    return changePasswordCode
 }
 
-export async function resetPassword(email, newPassword) {
+export async function resetPassword(changePasswordCode, newPassword) {
     const user = await User.findOne({
         where: {
-            email
+            changePasswordCode
         }
     })
 
@@ -114,6 +116,7 @@ export async function resetPassword(email, newPassword) {
     }
 
     user.password = newPassword
+    user.changePasswordCode = ''
 
     await user.save()
 }

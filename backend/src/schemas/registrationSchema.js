@@ -18,7 +18,6 @@ export const registrationSchema = [
         .isEmail()
         .withMessage('Invalid email'),
     body('password')
-        .customSanitizer(trimReplace)
         .notEmpty()
         .withMessage('Password should not be empty')
         .isLength({
@@ -38,7 +37,6 @@ export const registrationSchema = [
             return checked
         }),
     body('confirmPassword')
-        .customSanitizer(trimReplace)
         .notEmpty()
         .withMessage('Confirming of the password should not be empty')
         .isLength({

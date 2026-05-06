@@ -1,9 +1,8 @@
-import { body } from 'express-validator'
+import { body, param } from 'express-validator'
 import { passwordValidationRegex, trimReplace } from './schemaUtils.js'
 
 export const resetPasswordSchema = [
     body('newPassword')
-        .customSanitizer(trimReplace)
         .notEmpty()
         .withMessage('Password should not be empty')
         .isLength({
@@ -23,7 +22,6 @@ export const resetPasswordSchema = [
             return checked
         }),
     body('confirmNewPassword')
-        .customSanitizer(trimReplace)
         .notEmpty()
         .withMessage('Confirming of the password should not be empty')
         .isLength({
@@ -37,6 +35,7 @@ export const resetPasswordSchema = [
             if (password !== confirmPassword) {
                 throw new Error('Passwords must be same')
             }
-        })
+        }),
+    param('code').isUUID().withMessage('Invalid reset pasword code')
 ]
 

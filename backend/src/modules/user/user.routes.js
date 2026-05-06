@@ -128,11 +128,11 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
 
         const { email } = matchedData(req)
 
-        const user = await forgotPassword(email)
+        const changePasswordCode = await forgotPassword(email)
 
         await sendActivationEmail(
-            user.email,
-            `${process.env.API_URL}/api/user/reset_password/${user.changePasswordCode}`,
+            email,
+            `${process.env.API_URL}/api/user/reset_password/${changePasswordCode}`,
             `Reset your password on ${process.env.API_URL}. If you did not do that, ignore this message.`,
             'Please follow this link to reset your password:'
         )
@@ -146,20 +146,23 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
     }
 })
 
-userRouter.patch('reset_password', resetPasswordSchema, async (req, res, next) => {
-    const errors = validationResult(req)
+userRouter.get('reset_password/:code', resetPasswordSchema, async (req, res, next) => {
+    try {
+        const errors = validationResult(req)
 
-    if (!errors.isEmpty()) {
-        return next(CustomError.badRequest('Validation error!', errors.array()))
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { newPassword, code } = matchedData(req)
+
+        await resetPassword(code, newPassword)
+
+        return res.redirect(process.env.CLIENT_URL)
+    } catch (e) {
+        console.log(e)
+        next(e)
     }
-
-    const { newPassword } = matchedData(req)
-
-    await resetPassword(email, newPassword) // проверить откуда брать email
-
-    return res.json({
-        message: 'Your password has been changed'
-    })
 })
 
 userRouter.get('/auth', [header('Authorization').isJWT()], authHandler, async (req, res, next) => {
@@ -174,9 +177,10 @@ userRouter.get('/activate/:link', activateAccountSchema, async (req, res, next) 
             return next(CustomError.badRequest('Validation error!', errors.array()))
         }
 
-        const activationLink = matchedData(req)
+        const { link } = matchedData(req)
+        console.log('Activation: ', 6)
 
-        await activateAccount(activationLink)
+        await activateAccount(link)
 
         return res.redirect(process.env.CLIENT_URL)
     } catch (e) {
@@ -216,3 +220,4 @@ userRouter.get('/refresh', refreshSchema, async (req, res, next) => {
 })
 
 export default userRouter
+
