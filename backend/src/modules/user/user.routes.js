@@ -23,6 +23,7 @@ import { resetPasswordSchema } from '../../schemas/resetPasswordSchema.js'
 import { logoutSchema } from '../../schemas/logoutSchema.js'
 import { refreshSchema } from '../../schemas/refreshSchema.js'
 import { activateAccountSchema } from '../../schemas/activateAccountSchema.js'
+import upload from '../../middlewares/uploadFilesMiddleware.js'
 import { CustomError } from '../../errorHandlers/apiErrors.js'
 
 const userRouter = new Router()
@@ -41,7 +42,7 @@ userRouter.post('/register', registrationSchema, async (req, res, next) => {
 
         await sendActivationEmail(
             createdUser.email,
-            `${process.env.API_URL}/api/user/activate/${createdUser.activationLink}`,
+            `${process.env.API_URL}/api/user/activate/?code=${createdUser.activationLink}`,
             `Activate your account on ${process.env.API_URL}`,
             'Please follow this link to activate your account:'
         )
@@ -118,6 +119,25 @@ userRouter.post('/logout', logoutSchema, async (req, res, next) => {
     }
 })
 
+userRouter.get('/activate', activateAccountSchema, async (req, res, next) => {
+    try {
+        const errors = validationResult(req)
+
+        if (!errors.isEmpty()) {
+            return next(CustomError.badRequest('Validation error!', errors.array()))
+        }
+
+        const { code } = matchedData(req)
+
+        await activateAccount(code)
+
+        return res.redirect(`${process.env.CLIENT_URL}/auth/register`)
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
+
 userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
@@ -132,7 +152,7 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
 
         await sendActivationEmail(
             email,
-            `${process.env.API_URL}/api/user/reset_password/${changePasswordCode}`,
+            `${process.env.CLIENT_URL}/auth/reset_password/?code=${changePasswordCode}`,
             `Reset your password on ${process.env.API_URL}. If you did not do that, ignore this message.`,
             'Please follow this link to reset your password:'
         )
@@ -146,7 +166,7 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
     }
 })
 
-userRouter.get('reset_password/:code', resetPasswordSchema, async (req, res, next) => {
+userRouter.patch('/reset_password', resetPasswordSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -158,7 +178,9 @@ userRouter.get('reset_password/:code', resetPasswordSchema, async (req, res, nex
 
         await resetPassword(code, newPassword)
 
-        return res.redirect(process.env.CLIENT_URL)
+        return res.json({
+            message: 'You did it!'
+        })
     } catch (e) {
         console.log(e)
         next(e)
@@ -167,26 +189,6 @@ userRouter.get('reset_password/:code', resetPasswordSchema, async (req, res, nex
 
 userRouter.get('/auth', [header('Authorization').isJWT()], authHandler, async (req, res, next) => {
     console.log(5)
-})
-
-userRouter.get('/activate/:link', activateAccountSchema, async (req, res, next) => {
-    try {
-        const errors = validationResult(req)
-
-        if (!errors.isEmpty()) {
-            return next(CustomError.badRequest('Validation error!', errors.array()))
-        }
-
-        const { link } = matchedData(req)
-        console.log('Activation: ', 6)
-
-        await activateAccount(link)
-
-        return res.redirect(process.env.CLIENT_URL)
-    } catch (e) {
-        console.log(e)
-        next(e)
-    }
 })
 
 userRouter.get('/refresh', refreshSchema, async (req, res, next) => {
@@ -213,6 +215,17 @@ userRouter.get('/refresh', refreshSchema, async (req, res, next) => {
 
             return res.json(tokens)
         }
+    } catch (e) {
+        console.log(e)
+        next(e)
+    }
+})
+
+userRouter.post('/upload', upload.single('file'), (req, res, next) => {
+    try {
+        console.log(req.file)
+
+        return res.json('Uploaded!')
     } catch (e) {
         console.log(e)
         next(e)

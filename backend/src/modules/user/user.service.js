@@ -112,10 +112,12 @@ export async function resetPassword(changePasswordCode, newPassword) {
     })
 
     if (!user) {
-        throw CustomError.badRequest('No user with such email!')
+        throw CustomError.badRequest('No such user!')
     }
 
-    user.password = newPassword
+    const hashedNewPassword = await bcrypt.hash(newPassword, 5)
+
+    user.password = hashedNewPassword
     user.changePasswordCode = ''
 
     await user.save()

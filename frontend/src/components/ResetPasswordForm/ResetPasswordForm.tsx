@@ -1,5 +1,6 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IResetPasswordForm } from '@/src/interfaces/auth'
@@ -7,8 +8,15 @@ import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContai
 import Loader from '@/src/shared/Loader/Loader'
 import SubmitButton from '@/src/shared/SubmitButton/SubmitButton'
 import { resetPasswordSchema } from '@/src/schemas/resetPasswordFormSchema'
+import { useResetMutation } from '@/src/store/user/userApi'
 
 export default function ResetPasswordForm() {
+    const [resetPassword] = useResetMutation()
+
+    const searchParams = useSearchParams()
+
+    const code = searchParams.get('code')
+
     const defaultValues: IResetPasswordForm = {
         newPassword: '',
         confirmNewPassword: ''
@@ -19,11 +27,15 @@ export default function ResetPasswordForm() {
         resolver: zodResolver(resetPasswordSchema)
     })
 
-    const { handleSubmit } = methods
+    const { handleSubmit, reset } = methods
 
     const submitForm: SubmitHandler<IResetPasswordForm> = async (data) => {
         try {
-            console.log(data)
+            const res = await resetPassword({ code, ...data })
+
+            if (res && !res.error) {
+                reset()
+            }
         } catch (e) {
             console.log(e)
         }

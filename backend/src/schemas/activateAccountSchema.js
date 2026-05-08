@@ -1,4 +1,4 @@
-import { param } from 'express-validator'
+import { query } from 'express-validator'
 
-export const activateAccountSchema = [param('link').isUUID().withMessage('Invalid activation code')]
+export const activateAccountSchema = [query('code').isUUID().withMessage('Invalid activation code')]
 
