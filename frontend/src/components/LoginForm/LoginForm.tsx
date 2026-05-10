@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { ILoginForm } from '@/src/interfaces/auth'
 import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContainer'
 import Checkbox from '@/src/shared/Checkbox/Checkbox'
@@ -28,13 +29,27 @@ export default function LoginForm() {
 
     const submitForm: SubmitHandler<ILoginForm> = async (data) => {
         try {
-            const res = await loginUser(data)
+            const res = await loginUser(data).unwrap()
 
-            if (res && !res.error) {
+            if (res) {
+                toast.success('Successful login!', {
+                    style: {
+                        background: '#00FF7F',
+                        color: '#000000'
+                    }
+                })
+
                 reset()
             }
         } catch (e) {
             console.log(e)
+
+            toast.error('Check your login and password, then try again!', {
+                style: {
+                    background: '#B00000',
+                    color: '#ffffff'
+                }
+            })
         }
     }
 
@@ -82,5 +97,4 @@ export default function LoginForm() {
         </div>
     )
 }
-
 

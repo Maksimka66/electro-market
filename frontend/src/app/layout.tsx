@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Toaster } from 'sonner'
 import { Poppins, Inter } from 'next/font/google'
 import ReduxProvider from '../store/ReduxProvider'
 import './globals.css'
@@ -29,6 +30,7 @@ export default function RootLayout({
         <html lang='en' className={`${poppins.variable} ${inter.variable} h-full antialiased`}>
             <body className='h-screen flex items-center justify-center'>
                 <ReduxProvider>{children}</ReduxProvider>
+                <Toaster />
             </body>
         </html>
     )

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { IRegisterForm } from '@/src/interfaces/auth'
 import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContainer'
 import Checkbox from '@/src/shared/Checkbox/Checkbox'
@@ -31,13 +32,27 @@ export default function RegisterForm() {
 
     const submitForm: SubmitHandler<IRegisterForm> = async (data) => {
         try {
-            const res = await registerUser(data)
+            const res = await registerUser(data).unwrap()
 
-            if (res && !res.error) {
+            if (res) {
+                toast.success('You`re almost done! Check your email to activate your account.', {
+                    style: {
+                        background: '#00FF7F',
+                        color: '#000000'
+                    }
+                })
+
                 reset()
             }
         } catch (e) {
             console.log(e)
+
+            toast.error('Something wrong, please try again later!', {
+                style: {
+                    background: '#B00000',
+                    color: '#ffffff'
+                }
+            })
         }
     }
 

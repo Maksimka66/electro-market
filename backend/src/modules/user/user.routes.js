@@ -119,7 +119,7 @@ userRouter.post('/logout', logoutSchema, async (req, res, next) => {
     }
 })
 
-userRouter.get('/activate', activateAccountSchema, async (req, res, next) => {
+userRouter.patch('/activate', activateAccountSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -138,7 +138,7 @@ userRouter.get('/activate', activateAccountSchema, async (req, res, next) => {
     }
 })
 
-userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next) => {
+userRouter.post('/forgot', forgotPasswordSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -152,7 +152,7 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
 
         await sendActivationEmail(
             email,
-            `${process.env.CLIENT_URL}/auth/reset_password/?code=${changePasswordCode}`,
+            `${process.env.CLIENT_URL}/auth/reset/?code=${changePasswordCode}`,
             `Reset your password on ${process.env.API_URL}. If you did not do that, ignore this message.`,
             'Please follow this link to reset your password:'
         )
@@ -166,7 +166,7 @@ userRouter.post('/forgot_password', forgotPasswordSchema, async (req, res, next)
     }
 })
 
-userRouter.patch('/reset_password', resetPasswordSchema, async (req, res, next) => {
+userRouter.patch('/reset', resetPasswordSchema, async (req, res, next) => {
     try {
         const errors = validationResult(req)
 
@@ -179,7 +179,7 @@ userRouter.patch('/reset_password', resetPasswordSchema, async (req, res, next) 
         await resetPassword(code, newPassword)
 
         return res.json({
-            message: 'You did it!'
+            message: 'You`ve changed your password!'
         })
     } catch (e) {
         console.log(e)

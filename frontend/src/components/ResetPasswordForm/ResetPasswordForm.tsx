@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IResetPasswordForm } from '@/src/interfaces/auth'
 import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContainer'
@@ -31,13 +32,27 @@ export default function ResetPasswordForm() {
 
     const submitForm: SubmitHandler<IResetPasswordForm> = async (data) => {
         try {
-            const res = await resetPassword({ code, ...data })
+            const res = await resetPassword({ code, ...data }).unwrap()
 
-            if (res && !res.error) {
+            if (res) {
+                toast.success('You`ve changed your password!', {
+                    style: {
+                        background: '#00FF7F',
+                        color: '#000000'
+                    }
+                })
+
                 reset()
             }
         } catch (e) {
             console.log(e)
+
+            toast.error('Something`s wrong, please try again later!', {
+                style: {
+                    background: '#B00000',
+                    color: '#ffffff'
+                }
+            })
         }
     }
 

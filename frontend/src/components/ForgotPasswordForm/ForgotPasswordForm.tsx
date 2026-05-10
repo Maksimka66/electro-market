@@ -1,14 +1,18 @@
 'use client'
 
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IForgotPasswordForm } from '@/src/interfaces/auth'
 import FormFieldContainer from '@/src/shared/FormFieldContainer/FormFieldsContainer'
 import Loader from '@/src/shared/Loader/Loader'
 import SubmitButton from '@/src/shared/SubmitButton/SubmitButton'
+import { useForgotMutation } from '@/src/store/user/userApi'
 import { forgotPasswordSchema } from '@/src/schemas/forgotPasswordFormSchema'
 
 export default function ForgotPasswordForm() {
+    const [forgotPassword] = useForgotMutation()
+
     const defaultValues: IForgotPasswordForm = {
         email: ''
     }
@@ -18,13 +22,31 @@ export default function ForgotPasswordForm() {
         resolver: zodResolver(forgotPasswordSchema)
     })
 
-    const { handleSubmit } = methods
+    const { handleSubmit, reset } = methods
 
     const submitForm: SubmitHandler<IForgotPasswordForm> = async (data) => {
         try {
-            console.log(data)
+            const res = await forgotPassword(data).unwrap()
+
+            if (res) {
+                toast.success('Check your email to continue.', {
+                    style: {
+                        background: '#00FF7F',
+                        color: '#000000'
+                    }
+                })
+
+                reset()
+            }
         } catch (e) {
             console.log(e)
+
+            toast.error('Something wrong, please try again later!', {
+                style: {
+                    background: '#B00000',
+                    color: '#ffffff'
+                }
+            })
         }
     }
 
